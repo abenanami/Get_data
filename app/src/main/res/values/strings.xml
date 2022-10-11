@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Get data</string>
+    <string name="message">状態</string>
+    <string name="start">start</string>
+    <string name="stop">stop</string>
+    <string name="data">data</string>
+    <string name="reset">reset</string>
+    <string name="message_start">記録中</string>
+    <string name="message_stop">記録停止中</string>
+    <string name="read_error">からっぽ</string>
+</resources>
