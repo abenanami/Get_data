@@ -74,6 +74,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
 
+
     @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("SdCardPath")
     override fun onSensorChanged(event: SensorEvent) {
