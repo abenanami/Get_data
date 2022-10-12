@@ -61,9 +61,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onPause() {
         super.onPause()
-        //ボタン
-        val textMessage = findViewById<TextView>(R.id.message)
-        val stopbutton = findViewById<Button>(R.id.stop)
 
         // Listenerを解除
         sensorManager!!.unregisterListener(this)
