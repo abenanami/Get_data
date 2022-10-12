@@ -65,15 +65,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         val textMessage = findViewById<TextView>(R.id.message)
         val stopbutton = findViewById<Button>(R.id.stop)
 
-        //記録停止中
-        stopbutton.setOnClickListener {
-            textMessage.setText(R.string.message_stop)
-            // Listenerを解除
-            sensorManager!!.unregisterListener(this)
-        }
+        // Listenerを解除
+        sensorManager!!.unregisterListener(this)
     }
-
-
 
     @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("SdCardPath")
@@ -93,7 +87,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             sensorX = event.values[0]
             sensorY = event.values[1]
             sensorZ = event.values[2]
-            val strTmp = "${getNowDate(event)} X: $sensorX Y: $sensorY Z: $sensorZ,"
+            val strTmp = " ${getNowDate(event)} X: $sensorX Y: $sensorY Z: $sensorZ,"
             textView!!.text = strTmp
             savefile(strTmp)
         }
