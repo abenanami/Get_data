@@ -8,3 +8,16 @@ plugins {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+/*
+allprojects {
+    repositories {
+        google()
+    }
+}
+
+
+dependencies {
+    classpath 'com.google.gms:google-services:3.2.1'
+}
+
+ */

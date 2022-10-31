@@ -5,7 +5,10 @@
     <string name="stop">stop</string>
     <string name="data">data</string>
     <string name="reset">reset</string>
+    <string name="upload">upload</string>
     <string name="message_start">記録中</string>
     <string name="message_stop">記録停止中</string>
+    <string name="message_upload">アップロード成功</string>
+    <string name="message_uploaderror">アップロード失敗</string>
     <string name="read_error">からっぽ</string>
 </resources>
