@@ -1,9 +1,7 @@
 package com.example.getdata
 
 import android.annotation.SuppressLint
-import android.content.ContentValues
 import android.content.Intent
-import android.content.Intent.EXTRA_EMAIL
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -21,8 +19,6 @@ import java.io.*
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
-import android.database.sqlite.SQLiteDatabase
-import androidx.core.content.FileProvider
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
 
@@ -47,7 +43,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             sendCsv()
         }
     }
-    // CSVを生成して送信用ダイアログを表示させる
+
     private fun sendCsv() {
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
