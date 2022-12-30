@@ -48,7 +48,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_TEXT, readFile())
-//            putExtra(Intent.EXTRA_EMAIL, arrayOf("B21P002@akita-pu.ac.jp"))
             type = "text/plain"
         }
 
