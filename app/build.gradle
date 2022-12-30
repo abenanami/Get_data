@@ -51,14 +51,14 @@ dependencies {
 
     implementation 'com.google.android.gms:play-services-auth:19.0.0'
     implementation 'com.google.http-client:google-http-client-gson:1.26.0'
-    implementation('com.google.api-client:google-api-client-android:1.26.0') {
-        exclude group: 'org.apache.httpcomponents'
-    }
-    implementation('com.google.apis:google-api-services-drive:v3-rev173-1.25.0') {
-        exclude group: 'org.apache.httpcomponents'
-    }
+//    implementation('com.google.api-client:google-api-client-android:1.26.0') {
+//        exclude group: 'org.apache.httpcomponents'
+//    }
+//    implementation('com.google.apis:google-api-services-drive:v3-rev173-1.25.0') {
+//        exclude group: 'org.apache.httpcomponents'
+//    }
+    implementation 'com.opencsv:opencsv:5.6'
+    
     implementation( "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.0")
-
-    implementation 'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
 
 }

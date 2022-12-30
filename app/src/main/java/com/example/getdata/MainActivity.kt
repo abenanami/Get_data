@@ -1,35 +1,19 @@
 package com.example.getdata
 
-
-//import android.R
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.Context
+import android.content.ContentValues
 import android.content.Intent
+import android.content.Intent.EXTRA_EMAIL
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.TextView
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInClient
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.Scope
-import com.google.android.gms.tasks.Task
-import com.google.android.gms.tasks.TaskCompletionSource
-import com.google.api.client.extensions.android.http.AndroidHttp
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
-import com.google.api.client.http.ByteArrayContent
-import com.google.api.client.json.gson.GsonFactory
-import com.google.api.services.drive.Drive
-import com.google.api.services.drive.DriveScopes
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -37,90 +21,43 @@ import java.io.*
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
-import com.google.api.services.drive.model.File
-import com.google.common.io.ByteStreams.toByteArray
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.*
+import android.database.sqlite.SQLiteDatabase
+import androidx.core.content.FileProvider
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
-
-    private var googleSignInClient: GoogleSignInClient? = null
-    private var drive: Drive? = null
 
     private val fileName = "data.txt"
 
     private var sensorManager: SensorManager? = null
     private var textView: TextView? = null
 
-    //google drive login
-    private val driveContent =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == RESULT_OK && it.data != null) {
-                // ログイン成功
-                connectDrive(it.data!!)
-            } else {
-                // ログイン失敗orキャンセル
-            }
-        }
-
-    private fun loginToGoogle() {
-        val googleSignInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestScopes(Scope(DriveScopes.DRIVE_FILE))
-            .requestEmail()
-            .build()
-        googleSignInClient = GoogleSignIn.getClient(this, googleSignInOptions)
-        val intent = googleSignInClient?.signInIntent
-        driveContent.launch(intent)
-    }
-
-    private fun connectDrive(intent: Intent) {
-        GoogleSignIn.getSignedInAccountFromIntent(intent)
-            .addOnSuccessListener {
-                //ログイン成功
-                val credential = GoogleAccountCredential.usingOAuth2(
-                    this, Collections.singleton(DriveScopes.DRIVE_FILE)
-                )
-                credential.selectedAccount = it.account
-                drive = Drive.Builder(
-                    AndroidHttp.newCompatibleTransport(),
-                    GsonFactory(),
-                    credential
-                ).setApplicationName(getString(R.string.app_name)).build()
-            }
-            .addOnFailureListener {
-                //ログイン失敗
-                Log.w("Sign in failed", it.toString())
-            }
-    }
-
-    //ファイルIDの生成
-    fun createDriveIdTask(
-        parents: List<String>,
-        mimeType: String,
-        fileName: String
-    ): Task<String> {
-        val taskCompletionSource = TaskCompletionSource<String>()
-        val metadata = File().setName(fileName)
-            .setParents(parents)
-            .setMimeType(mimeType)
-            .setName(fileName)
-        val file =
-            drive?.files()?.create(metadata)?.execute() ?: throw IOException("Result is null")
-        taskCompletionSource.setResult(file.id)
-        return taskCompletionSource.task
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        loginToGoogle()
 
         // Get an instance of the SensorManager
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
 
         // Get an instance of the TextView
         textView = findViewById(R.id.text_view)
+
+//        insertData
+        val insertbutton = findViewById<Button>(R.id.insertData)
+        insertbutton.setOnClickListener{
+            sendCsv()
+        }
+    }
+    // CSVを生成して送信用ダイアログを表示させる
+    private fun sendCsv() {
+        val sendIntent: Intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, readFile())
+//            putExtra(Intent.EXTRA_EMAIL, arrayOf("B21P002@akita-pu.ac.jp"))
+            type = "text/plain"
+        }
+
+        val shareIntent = Intent.createChooser(sendIntent, null)
+        startActivity(shareIntent)
     }
 
     override fun onResume() {
@@ -163,7 +100,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         val resetbutton = findViewById<Button>(R.id.reset)
         val buttonRead: Button = findViewById(R.id.data)
         val stopbutton = findViewById<Button>(R.id.stop)
-        val uploadbutton = findViewById<Button>(R.id.upload)
 
         if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
             sensorX = event.values[0]
@@ -201,19 +137,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 textMessage.setText(R.string.read_error)
             }
         }
-
-        //アップロード
-        uploadbutton.setOnClickListener {
-            val str = readFile()
-            val byteArray = str?.toByteArray()
-            if (byteArray != null) {
-                backupToDrive("data.txt", "text/plain", byteArray)
-            }
-        }
     }
 
     // ファイルを保存
     private fun savefile(str: String) {
+        val mediaDir = externalMediaDirs.firstOrNull()?.let{
+            File(it, "").apply { mkdir() }
+        }
 
         try {
             openFileOutput(fileName, MODE_APPEND).use { fileOutputstream ->
@@ -223,52 +153,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             }
         } catch (e: IOException) {
             e.printStackTrace()
-        }
-    }
-
-
-    //ファイルIDの指定、保存、更新
-    fun saveFile(
-        fileId: String,
-        fileName: String,
-        contentType: String,
-        data: ByteArray
-    ): Task<Unit> {
-        val taskCompletionSource = TaskCompletionSource<Unit>()
-        val metadata = File().setName(fileName)
-        val contentStream = ByteArrayContent(contentType, data)
-        drive?.files()?.update(fileId, metadata, contentStream)?.execute()
-        taskCompletionSource.setResult(null)
-        return taskCompletionSource.task
-    }
-
-    //Driveにファイルをバックアップ
-    fun backupToDrive(fileName: String, mimeType: String, fileContent: ByteArray) {
-        val coroutineScope = CoroutineScope(Job() + Dispatchers.IO)
-        coroutineScope.launch {
-            createDriveIdTask(
-                listOf("root"),
-                mimeType,
-                fileName
-            ).addOnSuccessListener {
-                // ファイルIDの生成成功
-                val fileId = it
-                saveFile(
-                    fileId,
-                    fileName,
-                    mimeType,
-                    fileContent
-                ).addOnSuccessListener {
-                    // バックアップ成功
-                    Log.d("Success", "Backup succeeded")
-                }.addOnFailureListener { exception ->
-                    // バックアップ失敗
-                    Log.w("Failure", exception.toString())
-                }
-            }.addOnFailureListener { exception ->
-                // ファイルIDの生成失敗
-                Log.w("Failure", exception.toString())
-            }
         }
     }
 
@@ -303,4 +187,5 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             return df.format(date)
         }
     }
+
 }
