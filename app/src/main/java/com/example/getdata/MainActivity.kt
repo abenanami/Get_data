@@ -136,9 +136,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     // ファイルを保存
     private fun savefile(str: String) {
-        val mediaDir = externalMediaDirs.firstOrNull()?.let{
-            File(it, "").apply { mkdir() }
-        }
 
         try {
             openFileOutput(fileName, MODE_APPEND).use { fileOutputstream ->
